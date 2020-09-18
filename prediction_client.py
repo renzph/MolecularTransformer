@@ -3,8 +3,10 @@ import socket
 
 HOST, PORT = "localhost", 9999
 
+
 class MolecularTransformerClient():
     """Connect to a server running the molecular transformer"""
+
     def __init__(self, host, port):
         self.host = host
         self.port = port
@@ -35,10 +37,10 @@ class MolecularTransformerClient():
 
         return products, scores
 
+
 if __name__ == "__main__":
     with open('dummy_reactants.json') as f:
         dummy_reactants = json.load(f)
-
 
     reaction_model = MolecularTransformerClient(HOST, PORT)
     products, scores = reaction_model.predict_product(dummy_reactants)
