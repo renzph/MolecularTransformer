@@ -1,3 +1,4 @@
+import argparse
 import json
 import socketserver
 
@@ -10,19 +11,20 @@ class MolecularTransformerHandler(socketserver.StreamRequestHandler):
         reactants = json.loads(self.data.decode('utf-8'))
 
         products, scores = reaction_model.predict_reaction_batch(reactants)
-
         result = json.dumps([products, scores]).encode('utf-8')
         self.wfile.write(result)
 
 
 if __name__ == "__main__":
-    # TODO: Add command line arguments
+    parser = argparse.ArgumentParser(description='Serve MolecularTransformer reaction prediction.')
+    parser.add_argument('--host', default='localhost', help='Host address')
+    parser.add_argument('--port', default=9999, help='Port to use')
 
-    HOST, PORT = "localhost", 9999
+    args = parser.parse_args()
+
     reaction_model = TransformerReactionModel()
 
-    # Create the server, binding to localhost on port 9999
     socketserver.TCPServer.allow_reuse_address = True
-    server = socketserver.TCPServer((HOST, PORT), MolecularTransformerHandler)
+    server = socketserver.TCPServer((args.host, args.port), MolecularTransformerHandler)
 
     server.serve_forever()

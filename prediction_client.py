@@ -1,7 +1,6 @@
+import argparse
 import json
 import socket
-
-HOST, PORT = "localhost", 9999
 
 
 class MolecularTransformerClient():
@@ -27,7 +26,7 @@ class MolecularTransformerClient():
         # Create a socket (SOCK_STREAM means a TCP socket)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             # Connect to server and send data
-            sock.connect((HOST, PORT))
+            sock.connect((self.host, self.port))
 
             # sock.sendall(bytes(data + "\n", "utf-8"))
             sock.sendall(reactants)
@@ -39,10 +38,27 @@ class MolecularTransformerClient():
 
 
 if __name__ == "__main__":
-    with open('dummy_reactants.json') as f:
-        dummy_reactants = json.load(f)
+    parser = argparse.ArgumentParser(
+        description='Get reaction prediction results from a remote server')
+    parser.add_argument('--host', default='localhost', help='Host address')
+    parser.add_argument('--port', default=9999, help='Port to use')
+    parser.add_argument('-o', default=None, help='Output file')
+    parser.add_argument('-i', default='dummy_reactants.txt', help='Reactant input')
+    args = parser.parse_args()
 
-    reaction_model = MolecularTransformerClient(HOST, PORT)
-    products, scores = reaction_model.predict_product(dummy_reactants)
+    with open(args.i) as f:
+        reactants = f.read().split()
 
-    print(products, scores)
+    reaction_model = MolecularTransformerClient(args.host, args.port)
+    products, scores = reaction_model.predict_product(reactants)
+
+    if args.o is not None:
+        outfile = open(args.o, 'w')
+    else:
+        outfile = None
+
+    for p, s in zip(products, scores):
+        print("{}, {}".format(p, s), file=outfile)
+
+    if outfile:
+        outfile.close()
